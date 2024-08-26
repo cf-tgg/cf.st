@@ -278,6 +278,9 @@ static int focused = 0;
 static int oldbutton = 3; /* button event on startup: 3 = release */
 static uint buttons; /* bit field of pressed buttons */
 
+static Cursor cursor;
+static XColor xmousefg, xmousebg;
+
 void
 clipcopy(const Arg *dummy)
 {
@@ -723,6 +726,7 @@ setsel(char *str, Time t)
 	XSetSelectionOwner(xw.dpy, XA_PRIMARY, xw.win, t);
 	if (XGetSelectionOwner(xw.dpy, XA_PRIMARY) != xw.win)
 		selclear();
+	clipcopy(NULL);
 }
 
 void
@@ -1903,6 +1907,12 @@ xsetmode(int set, unsigned int flags)
 {
 	int mode = win.mode;
 	MODBIT(win.mode, set, flags);
+        if (flags & MODE_MOUSE) {
+                if (win.mode & MODE_MOUSE)
+                        XUndefineCursor(xw.dpy, xw.win);
+                else
+                        XDefineCursor(xw.dpy, xw.win, cursor);
+        }
 	if ((win.mode & MODE_REVERSE) != (mode & MODE_REVERSE))
 		redraw();
 }
